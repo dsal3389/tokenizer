@@ -31,7 +31,7 @@ struct __config config = { .raw=0, .suppress=0, .group_spaces=0 };
         } else {\
             printf(literal "\n");\
         }\
-    }while(0)
+    } while(0);
 
 
 void die(const char *fmt, ...)
@@ -80,6 +80,20 @@ int file_path_valid(const char *path)
 }
 
 
+// used only in `tokenize`
+#define PRINT_TOKEN(condition) do {\
+        start = c;\
+        while(*c && (condition)){\
+            c++;\
+        };\
+        tmp=*c;\
+        *c=0;\
+        printf("%s\n", start);\
+        *c=tmp;\
+        c--;\
+    } while(0);
+
+
 void tokenize(char *str)
 {
     int escape = 0;
@@ -119,18 +133,11 @@ void tokenize(char *str)
                 }
                 break;
             case '0'...'9':
-                start = c;
-
-                while(*c && (isalnum(*c) || *c == '.')){
-                    c++;
-                }
-
-                tmp = *c;
-                *c = 0;
-
-                printf("%s\n", start);
-                *c = tmp;
-                c--;
+                PRINT_TOKEN(*c && (isalnum(*c) || *c == '.'));
+                break;
+            case 'a'...'z':
+            case 'A'...'Z':
+                PRINT_TOKEN((isalpha(*c) || *c == '_'));
                 break;
             case '\"':
             case '\'':
@@ -140,7 +147,7 @@ void tokenize(char *str)
 
                 while(*c && (*c != *start || escape)){
                     escape = 0;
-                    
+
                     if(*c == '\\'){
                         while(*c && *c == '\\'){
                             escape = !escape;
@@ -152,21 +159,6 @@ void tokenize(char *str)
                 }
 
                 c++;
-                tmp = *c;
-                *c = 0;
-
-                printf("%s\n", start);
-                *c = tmp;
-                c--;
-                break;
-            case 'a'...'z':
-            case 'A'...'Z':
-                start = c;
-
-                while(*c && (isalpha(*c) || *c == '_')){
-                    c++;
-                }
-
                 tmp = *c;
                 *c = 0;
 
